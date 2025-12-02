@@ -2,43 +2,339 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carreras 3D Extremo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Carreras 3D Extremo - Móvil</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             margin: 0;
             padding: 0;
             background: #1a1a1a;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             font-family: Arial, sans-serif;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
-        canvas {
-            border: 2px solid #333;
-            box-shadow: 0 0 20px rgba(0, 120, 255, 0.3);
-        }
+
         .game-container {
             text-align: center;
+            width: 100%;
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
+
         h1 {
             color: #ff4444;
             text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            margin: 10px 0;
+            font-size: 1.8rem;
+            padding: 0 10px;
+            flex-shrink: 0;
+        }
+
+        canvas {
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0, 120, 255, 0.3);
+            width: 100%;
+            max-width: 100vw;
+            height: calc(100vh - 180px);
+            display: block;
+            flex-grow: 1;
+        }
+
+        /* Controles táctiles */
+        .controls-container {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 150px;
+            height: 150px;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #444;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .center {
+            grid-column: 2;
+            grid-row: 2;
+            background: rgba(50, 50, 50, 0.7);
+            font-size: 18px;
+            padding: 5px;
+        }
+
+        .right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .down {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 150px;
+        }
+
+        .action-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-size: 18px;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .action-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .turbo-btn {
+            background: rgba(255, 215, 0, 0.3);
+            border-color: #ffd700;
+        }
+
+        .restart-btn {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ff4444;
+        }
+
+        /* Información del juego */
+        .game-info {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            color: white;
+            font-size: 14px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px;
+            border-radius: 5px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Mensajes */
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 20;
+            display: none;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .message h2 {
+            color: #ff4444;
             margin-bottom: 10px;
+        }
+
+        .message button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-height: 700px) {
+            h1 {
+                font-size: 1.5rem;
+                margin: 5px 0;
+            }
+            
+            canvas {
+                height: calc(100vh - 160px);
+            }
+            
+            .controls-container {
+                height: 100px;
+            }
+            
+            .d-pad, .action-buttons {
+                width: 130px;
+            }
+            
+            .control-btn, .action-btn {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
+
+        @media (orientation: landscape) {
+            .game-container {
+                flex-direction: row;
+            }
+            
+            h1 {
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: auto;
+                z-index: 10;
+            }
+            
+            canvas {
+                height: calc(100vh - 20px);
+                margin-top: 20px;
+            }
+            
+            .controls-container {
+                position: absolute;
+                bottom: 10px;
+                left: 0;
+                right: 0;
+                height: auto;
+                padding: 5px;
+            }
+            
+            .d-pad {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .action-buttons {
+                flex-direction: row;
+                width: auto;
+                gap: 15px;
+            }
+            
+            .action-btn {
+                padding: 12px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
         <h1>CARRERAS 3D EXTREMO</h1>
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="game-info">
+            <div>Velocidad: <span id="speed">0</span> km/h</div>
+            <div>Puntos: <span id="score">0</span></div>
+            <div>Vidas: <span id="lives">3</span></div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="controls-container">
+            <div class="d-pad">
+                <div class="control-btn up" id="btn-up">↑</div>
+                <div class="control-btn left" id="btn-left">←</div>
+                <div class="control-btn center">DIRECCIÓN</div>
+                <div class="control-btn right" id="btn-right">→</div>
+                <div class="control-btn down" id="btn-down">↓</div>
+            </div>
+            
+            <div class="action-buttons">
+                <div class="action-btn turbo-btn" id="btn-turbo">TURBO</div>
+                <div class="action-btn restart-btn" id="btn-restart">REINICIAR</div>
+            </div>
+        </div>
+        
+        <div class="message" id="game-over-message">
+            <h2>GAME OVER</h2>
+            <p>Puntuación final: <span id="final-score">0</span></p>
+            <button id="restart-btn">JUGAR DE NUEVO</button>
+        </div>
     </div>
 
     <script>
         // Configuración del juego
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // Ajustar tamaño del canvas
+        function resizeCanvas() {
+            const container = document.querySelector('.game-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight - 180;
+            
+            // Ajuste especial para orientación horizontal
+            if (window.innerHeight < window.innerWidth) {
+                canvas.height = container.clientHeight - 20;
+            }
+        }
+        
+        // Inicializar tamaño del canvas
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
 
         // Colores
         const SKY_BLUE = 'rgb(135, 206, 235)';
@@ -54,10 +350,14 @@
         // Clase para el jugador
         class PlayerCar {
             constructor() {
-                this.x = canvas.width / 2;
-                this.y = canvas.height - 100;
                 this.width = 40;
                 this.height = 70;
+                this.reset();
+            }
+            
+            reset() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 100;
                 this.speed = 0;
                 this.maxSpeed = 10;
                 this.acceleration = 0.1;
@@ -71,9 +371,9 @@
 
             update(keys) {
                 // Aceleración y frenado
-                if (keys.ArrowUp) {
+                if (keys.up) {
                     this.speed = Math.min(this.speed + this.acceleration, this.maxSpeed);
-                } else if (keys.ArrowDown) {
+                } else if (keys.down) {
                     this.speed = Math.max(this.speed - this.deceleration * 2, -this.maxSpeed / 2);
                 } else {
                     // Desaceleración natural
@@ -85,9 +385,9 @@
                 }
 
                 // Dirección
-                if (keys.ArrowLeft) {
+                if (keys.left) {
                     this.steering = -this.maxSteering;
-                } else if (keys.ArrowRight) {
+                } else if (keys.right) {
                     this.steering = this.maxSteering;
                 } else {
                     this.steering = 0;
@@ -182,24 +482,6 @@
             }
         }
 
-        // Clase para elementos de la carretera
-        class RoadElement {
-            constructor(y) {
-                this.y = y;
-                this.width = 10;
-                this.height = 30;
-            }
-
-            update(speed) {
-                this.y += speed;
-            }
-
-            draw() {
-                ctx.fillStyle = ROAD_MARKING;
-                ctx.fillRect(canvas.width / 2 - this.width / 2, this.y, this.width, this.height);
-            }
-        }
-
         // Función para dibujar la carretera en perspectiva 3D
         function drawRoad(playerSpeed) {
             // Dibujar cielo
@@ -211,7 +493,7 @@
             ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
 
             // Dibujar carretera con perspectiva
-            const roadWidth = 300;
+            const roadWidth = Math.min(300, canvas.width * 0.7);
             const roadTopWidth = 100;
 
             ctx.fillStyle = ROAD_COLOR;
@@ -242,99 +524,127 @@
             }
         }
 
-        // Función para mostrar información en pantalla
-        function drawHUD(player) {
-            ctx.font = '24px Arial';
-            ctx.fillStyle = WHITE;
-            ctx.textAlign = 'left';
-
-            // Velocidad
-            ctx.fillText(`Velocidad: ${Math.abs(Math.floor(player.speed * 20))} km/h`, 20, 30);
-
-            // Puntuación
-            ctx.fillText(`Puntos: ${player.score}`, 20, 60);
-
-            // Vidas
-            ctx.fillText(`Vidas: ${player.lives}`, 20, 90);
-
-            // Instrucciones
-            ctx.font = '16px Arial';
-            const instructions = [
-                "Flechas: Mover coche",
-                "Espacio: Turbo (cuando disponible)",
-                "R: Reiniciar juego"
-            ];
-
-            instructions.forEach((instruction, index) => {
-                ctx.fillText(instruction, canvas.width - 200, 30 + index * 25);
-            });
-        }
-
         // Variables del juego
         let player = new PlayerCar();
         let enemyCars = [];
         let particles = [];
-        let roadElements = [];
         let spawnTimer = 0;
         let gameOver = false;
         let turboAvailable = true;
         let turboTimer = 0;
 
-        // Crear elementos de la carretera
-        for (let i = 0; i < canvas.height; i += 100) {
-            roadElements.push(new RoadElement(i));
-        }
-
-        // Control de teclado
+        // Control de teclado táctil
         const keys = {
-            ArrowUp: false,
-            ArrowDown: false,
-            ArrowLeft: false,
-            ArrowRight: false,
-            Space: false,
-            KeyR: false
+            up: false,
+            down: false,
+            left: false,
+            right: false
         };
 
-        document.addEventListener('keydown', (e) => {
-            if (e.code in keys) {
-                keys[e.code] = true;
-            }
+        // Configurar controles táctiles
+        function setupTouchControls() {
+            // Botones de dirección
+            document.getElementById('btn-up').addEventListener('touchstart', (e) => {
+                keys.up = true;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-up').addEventListener('touchend', (e) => {
+                keys.up = false;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-down').addEventListener('touchstart', (e) => {
+                keys.down = true;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-down').addEventListener('touchend', (e) => {
+                keys.down = false;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-left').addEventListener('touchstart', (e) => {
+                keys.left = true;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-left').addEventListener('touchend', (e) => {
+                keys.left = false;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-right').addEventListener('touchstart', (e) => {
+                keys.right = true;
+                e.preventDefault();
+            });
+            
+            document.getElementById('btn-right').addEventListener('touchend', (e) => {
+                keys.right = false;
+                e.preventDefault();
+            });
+            
+            // Botón de turbo
+            document.getElementById('btn-turbo').addEventListener('touchstart', (e) => {
+                if (turboAvailable && !gameOver) {
+                    player.speed = player.maxSpeed * 1.5;
+                    turboAvailable = false;
+                    turboTimer = Date.now();
 
-            if (e.code === 'Space' && turboAvailable && !gameOver) {
-                player.speed = player.maxSpeed * 1.5;
-                turboAvailable = false;
-                turboTimer = Date.now();
-
-                // Crear partículas de turbo
-                for (let i = 0; i < 30; i++) {
-                    particles.push(new Particle(player.x, player.y + player.height / 2));
+                    // Crear partículas de turbo
+                    for (let i = 0; i < 30; i++) {
+                        particles.push(new Particle(player.x, player.y + player.height / 2));
+                    }
+                    
+                    // Feedback visual
+                    document.getElementById('btn-turbo').style.background = 'rgba(255, 215, 0, 0.6)';
+                    setTimeout(() => {
+                        if (!gameOver) {
+                            document.getElementById('btn-turbo').style.background = 'rgba(255, 215, 0, 0.3)';
+                        }
+                    }, 200);
                 }
                 e.preventDefault();
-            }
-
-            if (e.code === 'KeyR' && gameOver) {
+            });
+            
+            // Botón de reinicio
+            document.getElementById('btn-restart').addEventListener('touchstart', (e) => {
                 resetGame();
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            if (e.code in keys) {
-                keys[e.code] = false;
-            }
-        });
+                e.preventDefault();
+            });
+            
+            // Botón de reinicio en mensaje de game over
+            document.getElementById('restart-btn').addEventListener('touchstart', (e) => {
+                resetGame();
+                document.getElementById('game-over-message').style.display = 'none';
+                e.preventDefault();
+            });
+            
+            // Prevenir eventos táctiles por defecto en controles
+            const controls = document.querySelectorAll('.control-btn, .action-btn');
+            controls.forEach(control => {
+                control.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                });
+            });
+        }
 
         // Función para reiniciar el juego
         function resetGame() {
-            player = new PlayerCar();
+            player.reset();
             enemyCars = [];
             particles = [];
-            roadElements = [];
-            for (let i = 0; i < canvas.height; i += 100) {
-                roadElements.push(new RoadElement(i));
-            }
             gameOver = false;
             turboAvailable = true;
             spawnTimer = 0;
+            document.getElementById('btn-turbo').style.background = 'rgba(255, 215, 0, 0.3)';
+        }
+
+        // Actualizar información en pantalla
+        function updateGameInfo() {
+            document.getElementById('speed').textContent = Math.abs(Math.floor(player.speed * 20));
+            document.getElementById('score').textContent = player.score;
+            document.getElementById('lives').textContent = player.lives;
         }
 
         // Bucle principal del juego
@@ -371,6 +681,8 @@
 
                         if (player.lives <= 0) {
                             gameOver = true;
+                            document.getElementById('final-score').textContent = player.score;
+                            document.getElementById('game-over-message').style.display = 'block';
                         }
                     }
                     // Eliminar coches que salen de la pantalla
@@ -388,25 +700,15 @@
                     }
                 }
 
-                // Actualizar elementos de la carretera
-                roadElements.forEach(element => {
-                    element.update(player.speed);
-                    if (element.y > canvas.height) {
-                        element.y = -element.height;
-                    }
-                });
-
                 // Recargar turbo después de 5 segundos
                 if (!turboAvailable && Date.now() - turboTimer > 5000) {
                     turboAvailable = true;
+                    document.getElementById('btn-turbo').style.background = 'rgba(255, 215, 0, 0.3)';
                 }
             }
 
             // Dibujar todo
             drawRoad(player.speed);
-
-            // Dibujar elementos de la carretera
-            roadElements.forEach(element => element.draw());
 
             // Dibujar coches enemigos
             enemyCars.forEach(enemy => enemy.draw());
@@ -417,39 +719,30 @@
             // Dibujar jugador
             player.draw();
 
-            // Dibujar HUD
-            drawHUD(player);
+            // Actualizar información del juego
+            updateGameInfo();
 
             // Mostrar turbo disponible
             if (turboAvailable && !gameOver) {
-                ctx.font = '24px Arial';
+                ctx.font = '18px Arial';
                 ctx.fillStyle = YELLOW;
                 ctx.textAlign = 'center';
-                ctx.fillText('TURBO DISPONIBLE (Espacio)', canvas.width / 2, canvas.height - 20);
-            }
-
-            // Mostrar pantalla de game over
-            if (gameOver) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.font = '72px Arial';
-                ctx.fillStyle = RED;
-                ctx.textAlign = 'center';
-                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
-
-                ctx.font = '36px Arial';
-                ctx.fillStyle = WHITE;
-                ctx.fillText(`Puntuación final: ${player.score}`, canvas.width / 2, canvas.height / 2 + 20);
-                ctx.fillText('Presiona R para reiniciar', canvas.width / 2, canvas.height / 2 + 70);
+                ctx.fillText('TURBO DISPONIBLE', canvas.width / 2, canvas.height - 30);
             }
 
             // Continuar el bucle
             requestAnimationFrame(gameLoop);
         }
 
-        // Iniciar el juego
+        // Inicializar el juego
+        setupTouchControls();
+        resizeCanvas();
         gameLoop();
+        
+        // Mensaje de bienvenida
+        setTimeout(() => {
+            alert("¡Bienvenido a Carreras 3D Extremo! Usa los controles táctiles para mover tu coche. Evita los coches enemigos y usa el turbo cuando esté disponible.");
+        }, 500);
     </script>
 </body>
 </html>
